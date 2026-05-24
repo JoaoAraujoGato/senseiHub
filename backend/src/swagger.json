@@ -1,0 +1,1159 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Sensei Hub API Documentação",
+        "version": "1.0.0",
+        "description": "API para o Sensei Hub, uma plataforma de gerenciamento de academias de artes marciais.",
+        "contact": {
+            "name": "Sensei Hub Team",
+            "email": "contact@senseihub.com"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000",
+            "description": "Servidor de desenvolvimento local"
+        }
+    ],
+    "paths": {
+
+        "/auth/login": {
+            "post": {
+                "summary": "Login de usuário",
+                "description": "Rota para autenticação de professores. Retorna um token JWT válido por 24h.",
+                "tags": ["Auth"],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/LoginInput" },
+                            "examples": {
+                                "Professor": {
+                                    "value": {
+                                        "email": "joao.araujo@example.com",
+                                        "senha": "senhaTeste123"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login bem-sucedido",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": { "type": "string", "example": "Login bem-sucedido" },
+                                        "token": { "type": "string", "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "description": "Credenciais inválidas" },
+                    "404": { "description": "Professor não encontrado" },
+                    "500": { "description": "Erro ao processar o login" }
+                }
+            }
+        },
+
+        "/atleta": {
+            "post": {
+                "summary": "Criar um novo atleta",
+                "description": "Cria um novo atleta. A senha é armazenada com hash bcrypt.",
+                "tags": ["Atleta"],
+                "security": [{ "bearerAuth": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/AtletaInput" },
+                            "examples": {
+                                "Atleta completo": {
+                                    "value": {
+                                        "nome": "João Araujo",
+                                        "nomeUsuario": "joao.araujo",
+                                        "email": "joao.araujo@example.com",
+                                        "senha": "senhaTeste123",
+                                        "dataNascimento": "1990-05-15",
+                                        "faixa": "507f1f77bcf86cd799439011",
+                                        "peso": "75",
+                                        "genero": "masculino",
+                                        "foto": "https://example.com/foto.jpg",
+                                        "responsaveis": [
+                                            { "nome": "Aparecida Gomes", "contato": "(11) 99999-8888", "parentesco": "mae" },
+                                            { "nome": "Cesar Araujo", "contato": "(11) 98888-7777", "parentesco": "pai" }
+                                        ],
+                                        "descricaoMedica": "Nenhuma condição médica conhecida.",
+                                        "status": "ativo",
+                                        "turmas": ["507f1f77bcf86cd799439012", "507f1f77bcf86cd799439013"]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Atleta criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": { "type": "string", "example": "Atleta criado com sucesso" },
+                                        "atleta": { "$ref": "#/components/schemas/Atleta" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": { "description": "Requisição inválida" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "get": {
+                "summary": "Listar todos os atletas",
+                "description": "Retorna a lista paginada de atletas. Suporta ordenação via query string.",
+                "tags": ["Atleta"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de atletas retornada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/PaginatedAtleta" }
+                            }
+                        }
+                    },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" },
+                    "500": { "description": "Falha ao paginar resultados" }
+                }
+            }
+        },
+
+        "/atleta/query": {
+            "get": {
+                "summary": "Buscar atletas com filtros",
+                "description": "Busca atletas com filtros no body. Campos de texto (nome, email) usam busca parcial e case/accent insensitive por padrão. O modo pode ser sobrescrito via `mode`.",
+                "tags": ["Atleta"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/AtletaQueryInput" },
+                            "examples": {
+                                "Busca por nome parcial": {
+                                    "value": { "nome": "joão", "mode": "partial" }
+                                },
+                                "Busca por nome exato": {
+                                    "value": { "nome": "João Araujo", "mode": "exact" }
+                                },
+                                "Busca por status": {
+                                    "value": { "status": "ativo" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Atletas encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/PaginatedAtleta" }
+                            }
+                        }
+                    },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" },
+                    "500": { "description": "Falha ao recuperar atletas" }
+                }
+            }
+        },
+
+        "/atleta/faixa/{faixaId}": {
+            "get": {
+                "summary": "Buscar atletas por faixa",
+                "description": "Retorna todos os atletas que possuem a faixa informada.",
+                "tags": ["Atleta"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/faixaId" }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Atletas encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": { "$ref": "#/components/schemas/Atleta" }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum atleta encontrado nessa faixa" },
+                    "500": { "description": "Falha ao buscar atletas da faixa" }
+                }
+            }
+        },
+
+        "/atleta/turma/{turmaId}": {
+            "get": {
+                "summary": "Buscar atletas por turma",
+                "description": "Retorna todos os atletas matriculados na turma informada.",
+                "tags": ["Atleta"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/turmaId" }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Atletas encontrados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": { "$ref": "#/components/schemas/Atleta" }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum atleta encontrado nessa turma" },
+                    "500": { "description": "Falha ao buscar atletas da turma" }
+                }
+            }
+        },
+
+        "/atleta/{id}": {
+            "get": {
+                "summary": "Obter atleta por ID",
+                "description": "Retorna os dados de um atleta específico.",
+                "tags": ["Atleta"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": {
+                        "description": "Atleta encontrado",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/Atleta" }
+                            }
+                        }
+                    },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Atleta não encontrado" },
+                    "500": { "description": "Falha ao recuperar atleta" }
+                }
+            },
+            "patch": {
+                "summary": "Atualizar atleta",
+                "description": "Atualiza parcialmente os dados de um atleta.",
+                "tags": ["Atleta"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/AtletaInput" },
+                            "examples": {
+                                "Atualizar peso e faixa": {
+                                    "value": { "peso": "80", "faixa": "507f1f77bcf86cd799439011" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Atleta atualizado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": { "type": "string", "example": "Atleta atualizado com sucesso" },
+                                        "atleta": { "$ref": "#/components/schemas/Atleta" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": { "description": "Requisição inválida ou nenhum dado fornecido" },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Atleta não encontrado" }
+                }
+            },
+            "delete": {
+                "summary": "Deletar atleta",
+                "description": "Remove um atleta pelo ID.",
+                "tags": ["Atleta"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Atleta deletado com sucesso" },
+                    "400": { "description": "ID inválido ou falha ao deletar" },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Atleta não encontrado" }
+                }
+            }
+        },
+
+        "/faixa": {
+            "post": {
+                "summary": "Criar uma nova faixa",
+                "tags": ["Faixa"],
+                "security": [{ "bearerAuth": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/FaixaInput" },
+                            "examples": {
+                                "Faixa branca": {
+                                    "value": { "nome": "Branca", "ordem": 1 }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Faixa criada com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": { "type": "string" },
+                                        "faixa": { "$ref": "#/components/schemas/Faixa" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": { "description": "Requisição inválida" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "get": {
+                "summary": "Listar todas as faixas",
+                "description": "Retorna faixas paginadas, ordenadas por `ordem` por padrão.",
+                "tags": ["Faixa"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de faixas",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/PaginatedFaixa" }
+                            }
+                        }
+                    },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" }
+                }
+            }
+        },
+
+        "/faixa/query": {
+            "get": {
+                "summary": "Buscar faixas com filtros",
+                "description": "Busca faixas com filtros. Campo `nome` usa busca parcial case/accent insensitive.",
+                "tags": ["Faixa"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "nome": { "type": "string" },
+                                    "mode": { "$ref": "#/components/schemas/QueryMode" }
+                                }
+                            },
+                            "examples": {
+                                "Busca por nome": {
+                                    "value": { "nome": "azul" }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Faixas encontradas", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedFaixa" } } } },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" }
+                }
+            }
+        },
+
+        "/faixa/{id}": {
+            "get": {
+                "summary": "Obter faixa por ID",
+                "tags": ["Faixa"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Faixa encontrada", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Faixa" } } } },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Faixa não encontrada" }
+                }
+            },
+            "patch": {
+                "summary": "Atualizar faixa",
+                "tags": ["Faixa"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/FaixaInput" }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Faixa atualizada com sucesso" },
+                    "400": { "description": "Nenhum dado fornecido" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "delete": {
+                "summary": "Deletar faixa",
+                "tags": ["Faixa"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Faixa deletada com sucesso" },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" }
+                }
+            }
+        },
+
+        "/professor": {
+            "post": {
+                "summary": "Criar um novo professor",
+                "description": "Cria um professor. A senha é armazenada com hash bcrypt e não é retornada na resposta.",
+                "tags": ["Professor"],
+                "security": [{ "bearerAuth": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ProfessorInput" },
+                            "examples": {
+                                "Professor": {
+                                    "value": {
+                                        "nome": "Carlos Silva",
+                                        "email": "carlos.silva@example.com",
+                                        "senha": "senhaTeste123"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Professor criado com sucesso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": { "type": "string" },
+                                        "professor": { "$ref": "#/components/schemas/Professor" }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": { "description": "Requisição inválida" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "get": {
+                "summary": "Listar todos os professores",
+                "description": "Retorna professores paginados, ordenados por `nome` por padrão.",
+                "tags": ["Professor"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "responses": {
+                    "200": { "description": "Lista de professores", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedProfessor" } } } },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" }
+                }
+            }
+        },
+
+        "/professor/query": {
+            "get": {
+                "summary": "Buscar professores com filtros",
+                "description": "Busca professores com filtros. Campos `nome` e `email` usam busca parcial case/accent insensitive.",
+                "tags": ["Professor"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "nome": { "type": "string" },
+                                    "email": { "type": "string" },
+                                    "mode": { "$ref": "#/components/schemas/QueryMode" }
+                                }
+                            },
+                            "examples": {
+                                "Busca por nome": { "value": { "nome": "carlos" } }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Professores encontrados", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedProfessor" } } } },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" }
+                }
+            }
+        },
+
+        "/professor/{id}": {
+            "get": {
+                "summary": "Obter professor por ID",
+                "tags": ["Professor"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Professor encontrado", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Professor" } } } },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Professor não encontrado" }
+                }
+            },
+            "patch": {
+                "summary": "Atualizar professor",
+                "tags": ["Professor"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/ProfessorInput" }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Professor atualizado com sucesso" },
+                    "400": { "description": "Nenhum dado fornecido" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "delete": {
+                "summary": "Deletar professor",
+                "tags": ["Professor"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Professor deletado com sucesso" },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" }
+                }
+            }
+        },
+
+        "/tecnica": {
+            "post": {
+                "summary": "Criar uma nova técnica",
+                "tags": ["Técnica"],
+                "security": [{ "bearerAuth": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/TecnicaInput" },
+                            "examples": {
+                                "Técnica": {
+                                    "value": {
+                                        "nome": "Osoto Gari",
+                                        "nomeTraduzido": "Grande Colheita Exterior",
+                                        "categoria": "Quedas",
+                                        "subcategoria": "Projeções de perna"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": { "description": "Técnica criada com sucesso" },
+                    "400": { "description": "Requisição inválida" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "get": {
+                "summary": "Listar todas as técnicas",
+                "description": "Retorna técnicas paginadas, ordenadas por `categoria > subcategoria > nome` por padrão.",
+                "tags": ["Técnica"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "responses": {
+                    "200": { "description": "Lista de técnicas", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedTecnica" } } } },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" }
+                }
+            }
+        },
+
+        "/tecnica/query": {
+            "get": {
+                "summary": "Buscar técnicas com filtros",
+                "description": "Busca técnicas com filtros. Campos `nome`, `categoria`, `subcategoria` e `nomeTraduzido` usam busca parcial.",
+                "tags": ["Técnica"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "nome": { "type": "string" },
+                                    "nomeTraduzido": { "type": "string" },
+                                    "categoria": { "type": "string" },
+                                    "subcategoria": { "type": "string" },
+                                    "mode": { "$ref": "#/components/schemas/QueryMode" }
+                                }
+                            },
+                            "examples": {
+                                "Busca por categoria": { "value": { "categoria": "quedas" } },
+                                "Busca por nome": { "value": { "nome": "osoto" } }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Técnicas encontradas", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedTecnica" } } } },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" }
+                }
+            }
+        },
+
+        "/tecnica/{id}": {
+            "get": {
+                "summary": "Obter técnica por ID",
+                "tags": ["Técnica"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Técnica encontrada", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Tecnica" } } } },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Técnica não encontrada" }
+                }
+            },
+            "patch": {
+                "summary": "Atualizar técnica",
+                "tags": ["Técnica"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": { "schema": { "$ref": "#/components/schemas/TecnicaInput" } }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Técnica atualizada com sucesso" },
+                    "400": { "description": "Nenhum dado fornecido" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "delete": {
+                "summary": "Deletar técnica",
+                "tags": ["Técnica"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Técnica deletada com sucesso" },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" }
+                }
+            }
+        },
+
+        "/turma": {
+            "post": {
+                "summary": "Criar uma nova turma",
+                "tags": ["Turma"],
+                "security": [{ "bearerAuth": [] }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": { "$ref": "#/components/schemas/TurmaInput" },
+                            "examples": {
+                                "Turma": {
+                                    "value": {
+                                        "nome": "Turma Avançada Manhã",
+                                        "professorResponsavel": ["507f1f77bcf86cd799439011"],
+                                        "programacao": {
+                                            "dias": { "segunda": true, "quarta": true, "sexta": true },
+                                            "horarioInicio": "07:00",
+                                            "horarioFim": "08:30"
+                                        },
+                                        "capacidadeMaxima": 20,
+                                        "descricao": "Turma para atletas avançados"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": { "description": "Turma criada com sucesso" },
+                    "400": { "description": "Requisição inválida" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "get": {
+                "summary": "Listar todas as turmas",
+                "description": "Retorna turmas paginadas, ordenadas por `nome` por padrão.",
+                "tags": ["Turma"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "responses": {
+                    "200": { "description": "Lista de turmas", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedTurma" } } } },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" }
+                }
+            }
+        },
+
+        "/turma/query": {
+            "get": {
+                "summary": "Buscar turmas com filtros",
+                "description": "Busca turmas com filtros. Campo `nome` usa busca parcial case/accent insensitive.",
+                "tags": ["Turma"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/page" },
+                    { "$ref": "#/components/parameters/limit" },
+                    { "$ref": "#/components/parameters/sort" }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "nome": { "type": "string" },
+                                    "mode": { "$ref": "#/components/schemas/QueryMode" }
+                                }
+                            },
+                            "examples": {
+                                "Busca por nome": { "value": { "nome": "manhã" } }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Turmas encontradas", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/PaginatedTurma" } } } },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhum resultado encontrado" }
+                }
+            }
+        },
+
+        "/turma/professor/{professorId}": {
+            "get": {
+                "summary": "Buscar turmas por professor",
+                "description": "Retorna todas as turmas onde o professor informado é responsável.",
+                "tags": ["Turma"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [
+                    { "$ref": "#/components/parameters/professorId" }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Turmas encontradas",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": { "$ref": "#/components/schemas/Turma" }
+                                }
+                            }
+                        }
+                    },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Nenhuma turma encontrada para esse professor" },
+                    "500": { "description": "Falha ao buscar turmas do professor" }
+                }
+            }
+        },
+
+        "/turma/{id}": {
+            "get": {
+                "summary": "Obter turma por ID",
+                "tags": ["Turma"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Turma encontrada", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/Turma" } } } },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" },
+                    "404": { "description": "Turma não encontrada" }
+                }
+            },
+            "patch": {
+                "summary": "Atualizar turma",
+                "tags": ["Turma"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": { "schema": { "$ref": "#/components/schemas/TurmaInput" } }
+                    }
+                },
+                "responses": {
+                    "200": { "description": "Turma atualizada com sucesso" },
+                    "400": { "description": "Nenhum dado fornecido" },
+                    "401": { "description": "Não autorizado" }
+                }
+            },
+            "delete": {
+                "summary": "Deletar turma",
+                "tags": ["Turma"],
+                "security": [{ "bearerAuth": [] }],
+                "parameters": [{ "$ref": "#/components/parameters/id" }],
+                "responses": {
+                    "200": { "description": "Turma deletada com sucesso" },
+                    "400": { "description": "ID inválido" },
+                    "401": { "description": "Não autorizado" }
+                }
+            }
+        }
+    },
+
+    "components": {
+        "securitySchemes": {
+            "bearerAuth": {
+                "type": "http",
+                "scheme": "bearer",
+                "bearerFormat": "JWT"
+            }
+        },
+        "parameters": {
+            "id": {
+                "name": "id",
+                "in": "path",
+                "required": true,
+                "schema": { "type": "string", "example": "507f1f77bcf86cd799439011" },
+                "description": "ID MongoDB do documento"
+            },
+            "faixaId": {
+                "name": "faixaId",
+                "in": "path",
+                "required": true,
+                "schema": { "type": "string", "example": "507f1f77bcf86cd799439011" },
+                "description": "ID MongoDB da faixa"
+            },
+            "turmaId": {
+                "name": "turmaId",
+                "in": "path",
+                "required": true,
+                "schema": { "type": "string", "example": "507f1f77bcf86cd799439012" },
+                "description": "ID MongoDB da turma"
+            },
+            "professorId": {
+                "name": "professorId",
+                "in": "path",
+                "required": true,
+                "schema": { "type": "string", "example": "507f1f77bcf86cd799439013" },
+                "description": "ID MongoDB do professor"
+            },
+            "page": {
+                "name": "page",
+                "in": "query",
+                "schema": { "type": "integer", "default": 1, "example": 1 },
+                "description": "Número da página"
+            },
+            "limit": {
+                "name": "limit",
+                "in": "query",
+                "schema": { "type": "integer", "default": 10, "example": 10 },
+                "description": "Itens por página"
+            },
+            "sort": {
+                "name": "sort",
+                "in": "query",
+                "schema": { "type": "string", "example": "nome:asc,dataCadastro:desc" },
+                "description": "Ordenação no formato `campo:asc` ou `campo:desc`, separados por vírgula. Sobrescreve o sort padrão da rota."
+            }
+        },
+        "schemas": {
+            "QueryMode": {
+                "type": "string",
+                "enum": ["exact", "partial"],
+                "default": "partial",
+                "description": "Modo de busca para campos de texto: `exact` (nome exato) ou `partial` (contém o texto). Ambos são case e accent insensitive."
+            },
+            "Paginacao": {
+                "type": "object",
+                "properties": {
+                    "nextUrl": { "type": "string", "nullable": true, "example": "/atleta?page=2&limit=10" },
+                    "prevUrl": { "type": "string", "nullable": true, "example": null },
+                    "total": { "type": "integer", "example": 45 },
+                    "page": { "type": "integer", "example": 1 },
+                    "limit": { "type": "integer", "example": 10 }
+                }
+            },
+            "LoginInput": {
+                "type": "object",
+                "required": ["email", "senha"],
+                "properties": {
+                    "email": { "type": "string", "format": "email" },
+                    "senha": { "type": "string" }
+                }
+            },
+            "Responsavel": {
+                "type": "object",
+                "properties": {
+                    "nome": { "type": "string", "example": "Aparecida Gomes" },
+                    "contato": { "type": "string", "example": "(11) 99999-8888" },
+                    "parentesco": { "type": "string", "example": "mae" }
+                }
+            },
+            "AtletaInput": {
+                "type": "object",
+                "properties": {
+                    "nome": { "type": "string", "example": "Testerson da Silva"},
+                    "nomeUsuario": { "type": "string", "example": "testerson.da.silva"},
+                    "email": { "type": "string", "format": "email", "example": "testersonDaSilva@gmail.com"},
+                    "senha": { "type": "string", "example": "12345" },
+                    "dataNascimento": { "type": "string", "format": "date", "example": "01/01/2000" },
+                    "faixa": { "type": "string", "description": "ObjectId da faixa", "example": "507f1f77bcf86cd799439011" },
+                    "peso": { "type": "string", "example": "50" },
+                    "genero": { "type": "string", "enum": ["masculino", "feminino", "outro"], "example": "masculino" },
+                    "foto": { "type": "string", "example": "http//foto.com.br" },
+                    "responsaveis": { "type": "array", "items": { "$ref": "#/components/schemas/Responsavel" } },
+                    "descricaoMedica": { "type": "string" },
+                    "status": { "type": "string", "enum": ["ativo", "inativo"] },
+                    "turmas": { "type": "array", "items": { "type": "string" }, "description": "Array de ObjectIds das turmas", "example": ["507f1f77bcf86cd799439012"] }
+                }
+            },
+            "Atleta": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/AtletaInput" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "_id": { "type": "string", "example": "507f1f77bcf86cd799439011" },
+                            "dataCadastro": { "type": "string", "format": "date-time" }
+                        }
+                    }
+                ]
+            },
+            "AtletaQueryInput": {
+                "type": "object",
+                "properties": {
+                    "nome": { "type": "string" },
+                    "email": { "type": "string" },
+                    "status": { "type": "string", "enum": ["ativo", "inativo"] },
+                    "genero": { "type": "string" },
+                    "faixa": { "type": "string" },
+                    "mode": { "$ref": "#/components/schemas/QueryMode" }
+                }
+            },
+            "PaginatedAtleta": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/Paginacao" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "results": { "type": "array", "items": { "$ref": "#/components/schemas/Atleta" } }
+                        }
+                    }
+                ]
+            },
+            "FaixaInput": {
+                "type": "object",
+                "properties": {
+                    "nome": { "type": "string", "example": "Branca" },
+                    "corPrincipalHex": { "type": "string", "example": "#FFFFFF"},
+                    "corSecundariaHex": { "type": "string", "example": "#FFFFFF"},
+                    "ordem": { "type": "integer", "example": 1 }
+                }
+            },
+            "Faixa": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/FaixaInput" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "_id": { "type": "string" },
+                            "dataCadastro": { "type": "string", "format": "date-time" }
+                        }
+                    }
+                ]
+            },
+            "PaginatedFaixa": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/Paginacao" },
+                    { "type": "object", "properties": { "results": { "type": "array", "items": { "$ref": "#/components/schemas/Faixa" } } } }
+                ]
+            },
+            "ProfessorInput": {
+                "type": "object",
+                "properties": {
+                    "nome": { "type": "string", "example": "Carlos Silva" },
+                    "email": { "type": "string", "format": "email" },
+                    "senha": { "type": "string" },
+                    "ativo": { "type": "boolean", "default": true }
+                }
+            },
+            "Professor": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/ProfessorInput" },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "_id": { "type": "string" },
+                            "dataCadastro": { "type": "string", "format": "date-time" }
+                        }
+                    }
+                ]
+            },
+            "PaginatedProfessor": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/Paginacao" },
+                    { "type": "object", "properties": { "results": { "type": "array", "items": { "$ref": "#/components/schemas/Professor" } } } }
+                ]
+            },
+            "TecnicaInput": {
+                "type": "object",
+                "properties": {
+                    "nome": { "type": "string", "example": "Osoto Gari" },
+                    "nomeTraduzido": { "type": "string", "example": "Grande Colheita Exterior" },
+                    "categoria": { "type": "string", "example": "Quedas" },
+                    "subcategoria": { "type": "string", "example": "Projeções de perna" }
+                }
+            },
+            "Tecnica": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/TecnicaInput" },
+                    { "type": "object", "properties": { "_id": { "type": "string" }, "dataCadastro": { "type": "string", "format": "date-time" } } }
+                ]
+            },
+            "PaginatedTecnica": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/Paginacao" },
+                    { "type": "object", "properties": { "results": { "type": "array", "items": { "$ref": "#/components/schemas/Tecnica" } } } }
+                ]
+            },
+            "ProgramacaoDias": {
+                "type": "object",
+                "properties": {
+                    "segunda": { "type": "boolean", "default": false },
+                    "terca": { "type": "boolean", "default": false },
+                    "quarta": { "type": "boolean", "default": false },
+                    "quinta": { "type": "boolean", "default": false },
+                    "sexta": { "type": "boolean", "default": false },
+                    "sabado": { "type": "boolean", "default": false },
+                    "domingo": { "type": "boolean", "default": false }
+                }
+            },
+            "TurmaInput": {
+                "type": "object",
+                "properties": {
+                    "nome": { "type": "string", "example": "Turma Avançada Manhã" },
+                    "professorResponsavel": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Array de ObjectIds dos professores responsáveis",
+                        "example": ["507f1f77bcf86cd799439011"]
+                    },
+                    "programacao": {
+                        "type": "object",
+                        "properties": {
+                            "dias": { "$ref": "#/components/schemas/ProgramacaoDias" },
+                            "horarioInicio": { "type": "string", "example": "07:00" },
+                            "horarioFim": { "type": "string", "example": "08:30" }
+                        }
+                    },
+                    "capacidadeMaxima": { "type": "integer", "example": 20 },
+                    "descricao": { "type": "string" }
+                }
+            },
+            "Turma": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/TurmaInput" },
+                    { "type": "object", "properties": { "_id": { "type": "string" }, "dataCadastro": { "type": "string", "format": "date-time" } } }
+                ]
+            },
+            "PaginatedTurma": {
+                "allOf": [
+                    { "$ref": "#/components/schemas/Paginacao" },
+                    { "type": "object", "properties": { "results": { "type": "array", "items": { "$ref": "#/components/schemas/Turma" } } } }
+                ]
+            }
+        }
+    }
+}
