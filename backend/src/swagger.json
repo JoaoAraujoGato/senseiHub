@@ -13,6 +13,10 @@
         {
             "url": "http://localhost:3000",
             "description": "Servidor de desenvolvimento local"
+        },
+        {
+            "url": "https://senseihub.onrender.com",
+            "description": "Servidor deploy render"
         }
     ],
     "paths": {
