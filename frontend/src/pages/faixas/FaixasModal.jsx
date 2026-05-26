@@ -1,87 +1,81 @@
-import  PropTypes from 'prop-types';
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import { Actions, Button, CloseButton, ColorRow, Field, Modal, ModalHeader, ModalTitle, Overlay } from './FaixasStyle';
+import PropTypes from 'prop-types';
+import { useMemo } from 'react';
+import { ModalGenerico } from '../../components/modal/ModalGenerico';
+
+const FAIXA_FIELDS = [
+  {
+    name: 'nome',
+    label: 'Nome',
+    placeholder: 'Ex: Azul',
+    rules: { required: 'Nome é obrigatório' },
+  },
+  {
+    name: 'ordem',
+    label: 'Ordem',
+    placeholder: 'Ex: 3',
+    rules: { required: 'Ordem é obrigatória' },
+  },
+  {
+    name: 'corPrincipalHex',
+    label: 'Cor Principal',
+    type: 'color',
+    row: 'cores',
+    style: { flex: 1 },
+    rules: { required: 'Obrigatório' },
+  },
+  {
+    name: 'corSecundariaHex',
+    label: 'Cor Secundária (opcional)',
+    type: 'color',
+    row: 'cores',
+    style: { flex: 1 },
+  },
+];
+
+const DEFAULT_VALUES = { nome: '', corPrincipalHex: '#000000', corSecundariaHex: '#000000' };
 
 export function FaixaModal({ aberto, onFechar, onSalvar, faixaSelecionada }) {
-    const isEdicao = !!faixaSelecionada
+  const isEdicao = !!faixaSelecionada?.nome;
 
-    const { register, handleSubmit, reset, formState: { errors } } = useForm()
+  const defaultValues = useMemo(() => isEdicao
+    ? {
+        nome:             faixaSelecionada.nome,
+        corPrincipalHex:  faixaSelecionada.corPrincipalHex,
+        corSecundariaHex: faixaSelecionada.corSecundariaHex ?? '#000000',
+      }
+    : DEFAULT_VALUES,
+  [isEdicao, faixaSelecionada]);
 
-    // preenche o form ao abrir em modo edição
-    useEffect(() => {
-        if (faixaSelecionada) {
-            reset({
-                nome:             faixaSelecionada.nome,
-                corPrincipalHex:  faixaSelecionada.corPrincipalHex,
-                corSecundariaHex: faixaSelecionada.corSecundariaHex || '',
-            })
-        } else {
-            reset({ nome: '', corPrincipalHex: '#000000', corSecundariaHex: '' })
-        }
-    }, [faixaSelecionada, reset])
+  if (!aberto) return null;
 
-    if (!aberto) return null
-
-    return (
-        <Overlay onClick={onFechar}>
-            <Modal onClick={e => e.stopPropagation()}>
-                <ModalHeader>
-                    <ModalTitle>{isEdicao ? 'Editar Faixa' : 'Nova Faixa'}</ModalTitle>
-                    <CloseButton onClick={onFechar}>✕</CloseButton>
-                </ModalHeader>
-
-                <form onSubmit={handleSubmit(onSalvar)}>
-                    <Field>
-                        <label>Nome</label>
-                        <input
-                            placeholder="Ex: Azul"
-                            {...register('nome', { required: 'Nome é obrigatório' })}
-                        />
-                        {errors.nome && <span>{errors.nome.message}</span>}
-                    </Field>
-
-                    <ColorRow>
-                        <Field style={{ flex: 1 }}>
-                            <label>Cor Principal</label>
-                            <input
-                                type="color"
-                                {...register('corPrincipalHex', { required: 'Obrigatório' })}
-                            />
-                            {errors.corPrincipalHex && <span>{errors.corPrincipalHex.message}</span>}
-                        </Field>
-
-                        <Field style={{ flex: 1 }}>
-                            <label>Cor Secundária <small>(opcional)</small></label>
-                            <input
-                                type="color"
-                                {...register('corSecundariaHex')}
-                            />
-                        </Field>
-                    </ColorRow>
-
-                    <Actions style={{ marginTop: '1rem' }}>
-                        <Button type="button" onClick={onFechar}>Cancelar</Button>
-                        <Button type="submit" $variant="primary">
-                            {isEdicao ? 'Salvar' : 'Cadastrar'}
-                        </Button>
-                    </Actions>
-                </form>
-            </Modal>
-        </Overlay>
-    )
+  return (
+    <ModalGenerico
+      aberto={aberto}
+      onFechar={onFechar}
+      onSalvar={onSalvar}
+      titulo={isEdicao ? 'Editar Faixa' : 'Nova Faixa'}
+      submitLabel={isEdicao ? 'Salvar' : 'Cadastrar'}
+      fields={FAIXA_FIELDS}
+      defaultValues={defaultValues}
+      colorPreview  // 👈 nova prop que ativa o efeito
+    />
+  );
 }
 
 FaixaModal.defaultProps = {
-    aberto: false,
-    onFechar: () => {},
-    onSalvar: () => {},
-    faixaSelecionada: {},
-}
+  aberto: false,
+  onFechar: () => {},
+  onSalvar: () => {},
+  faixaSelecionada: null,   // null é mais semântico que {} para "nenhum"
+};
 
 FaixaModal.propTypes = {
-    aberto: PropTypes.bool,
-    onFechar: PropTypes.func,
-    onSalvar: PropTypes.func,
-    faixaSelecionada: PropTypes.object,
-}
+  aberto:            PropTypes.bool,
+  onFechar:          PropTypes.func,
+  onSalvar:          PropTypes.func,
+  faixaSelecionada:  PropTypes.shape({
+    nome:             PropTypes.string,
+    corPrincipalHex:  PropTypes.string,
+    corSecundariaHex: PropTypes.string,
+  }),
+};
