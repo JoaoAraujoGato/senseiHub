@@ -11,7 +11,9 @@ const StyledNavBar = styled.nav`
     padding: 1rem;
     background-color: var(--background-color);
     z-index: 1;
-    box-shadow: rgba(4, 4, 6, 0.1) 0px 1px 0px;
+    background-color: #000;
+    border-bottom: 1px solid #252525;
+    box-shadow: rgba(255, 255, 255, 0.1) 0px 1px 0px;
 `
 
 export function Navbar(){

@@ -4,6 +4,12 @@ import ImageLogo from "../image/ImageLogo"
 import logo from "../../assets/images/logoDark.png"
 import { useState } from 'react';
 
+import { MdDashboard, MdAttachMoney, MdCampaign, MdSettings } from 'react-icons/md'
+import { FaUsers, FaUniversity, FaUserTie, FaTrophy } from 'react-icons/fa'
+import { GiBlackBelt } from 'react-icons/gi'
+import { BsCalendarCheck, BsActivity } from 'react-icons/bs'
+import { PiExamBold } from 'react-icons/pi'
+
 const Container = styled.div`
     width: 240px;
     min-height: 100vh;
@@ -181,7 +187,7 @@ function getInitials(name) {
 }
 
 function SidebarItem({
-    icon,
+    icon: Icon,
     label,
     active,
     badge,
@@ -193,7 +199,7 @@ function SidebarItem({
             onClick={onClick}
         >
             <LeftContent>
-                <i className={`bi bi-${icon}`}></i>
+                <Icon size={18} />
 
                 <span>{label}</span>
             </LeftContent>
@@ -206,7 +212,7 @@ function SidebarItem({
 }
 
 SidebarItem.defaultProps = {
-    icon: '',
+    icon: () => {},
     label: '',
     active: false,
     badge: '',
@@ -214,7 +220,7 @@ SidebarItem.defaultProps = {
 }
 
 SidebarItem.propTypes = {
-    icon: PropTypes.string,
+    icon: PropTypes.elementType,
     label: PropTypes.string,
     active: PropTypes.bool,
     badge: PropTypes.string,
@@ -227,58 +233,63 @@ export function Sidebar() {
 
     const menuItems = [
         {
-            icon: "grid",
+            icon: MdDashboard,
             label: "Dashboard",
             badge: "WIP"
         },
         {
-            icon: "people",
+            icon: FaUsers,
             label: "Atletas",
             badge: "WIP"
         },
         {
-            icon: "bank",
+            icon: FaUniversity,
             label: "Turmas",
             badge: "WIP"
         },
         {
-            icon: "calendar-check",
+            icon: BsCalendarCheck,
             label: "Presença",
             badge: "WIP"
         },
         {
-            icon: "activity",
+            icon: BsActivity,
             label: "Treino",
             badge: "WIP"
         },
         {
-            icon: "mortarboard",
+            icon: GiBlackBelt,
+            label: "Faixas",
+            badge: "WIP"
+        },
+        {
+            icon: PiExamBold,
             label: "Exame de faixa",
             badge: "WIP"
         },
         {
-            icon: "trophy",
+            icon: FaTrophy,
             label: "Campeonatos",
             badge: "WIP"
         },
         {
-            icon: "cash-coin",
+            icon: MdAttachMoney,
             label: "Financeiro",
             badge: "WIP"
         },
         {
-            icon: "megaphone",
+            icon: MdCampaign,
             label: "Anúncios",
             badge: "WIP"
         },
         {
-            icon: "person-workspace",
+            icon: FaUserTie,
             label: "Professores",
             badge: "WIP",
             // badge: "ADMIN",
         },
         {
-            icon: "gear",
+            icon: MdSettings,
             label: "Configurações",
             badge: "WIP",
             // badge: "ADMIN",
