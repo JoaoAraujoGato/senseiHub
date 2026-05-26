@@ -1,6 +1,7 @@
 import './App.css'
 import { GlobalStyled } from './GlobalStyled'
-import { DashboardPage } from './pages/dashboard/DashboardPage'
+import { FaixasPage } from './pages/faixas/FaixasPage'
+// import { DashboardPage } from './pages/dashboard/DashboardPage'
 // import { HomePage } from './pages/home/HomePage'
 
 function App() {
@@ -8,7 +9,8 @@ function App() {
     <>
       <GlobalStyled />
       {/* <HomePage /> */}
-      <DashboardPage />
+      {/* <DashboardPage /> */}
+      <FaixasPage />
     </>
   )
 }
