@@ -70,9 +70,27 @@ export const getSchema = function() {
     });
 
     ProfessorSchema.pre('save', async function(next) {
+        if (!this.senha || !this.isModified('senha')) {
+            return next();
+        }
         // Hash da senha usando bcrypt
         const saltRounds = 10;
         this.senha = await bcrypt.hash(this.senha, saltRounds);
+
+        next();
+    });
+
+    // findByIdAndUpdate/findOneAndUpdate não disparam o hook 'save' — reaplica o hash no update
+    ProfessorSchema.pre('findOneAndUpdate', async function(next) {
+        const update = this.getUpdate() ?? {};
+        const senha = update.senha ?? update.$set?.senha;
+
+        if (senha) {
+            const saltRounds = 10;
+            const hash = await bcrypt.hash(senha, saltRounds);
+            if (update.$set?.senha) update.$set.senha = hash;
+            else update.senha = hash;
+        }
 
         next();
     });

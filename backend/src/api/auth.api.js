@@ -3,25 +3,28 @@ import jwt from "jsonwebtoken";
 
 import professorModel from '../models/Professor.model.js';
 
-const login = async ({ email, senha }) => {
-    const professor = await professorModel.findOne({ email }).select('+senha');
+const httpError = (status, message) => Object.assign(new Error(message), { status });
 
-    if (!professor) throw new Error("Professor não encontrado");
-
-    try {
-        const senhaValida = bcrypt.compareSync(senha, professor?.senha);
-
-        if (!senhaValida) throw new Error("Credenciais inválidas");
-
-        const token = generateToken({ id: professor?._id, nome: professor?.nome });
-        return({ message: "Login bem-sucedido", token });
-    } catch (err) {
-        throw new Error({ error: err.message, message: "Erro ao processar login"});
+const login = async ({ email, senha } = {}) => {
+    if (!email || !senha) {
+        throw httpError(400, 'Email e senha são obrigatórios');
     }
+
+    // somente professores ativos podem autenticar
+    const professor = await professorModel.findOne({ email, status: true }).select('+senha');
+
+    // mesma mensagem para email inexistente e senha inválida (evita enumeração de usuários)
+    if (!professor || !bcrypt.compareSync(senha, professor.senha)) {
+        throw httpError(401, 'Credenciais inválidas');
+    }
+
+    const token = generateToken({ id: professor._id, nome: professor.nome, papel: professor.papel });
+    return { message: 'Login bem-sucedido', token };
 }
 
-// Se quiser podemos enviar o email ou qualquer informação do professor no token, mas por segurança é melhor enviar apenas o id e buscar as informações do professor no banco de dados quando necessário
-const generateToken = ({ id, nome }) => jwt.sign({ id: id, nome: nome }, process.env.JWT_SECRET, { expiresIn: 86400 });
+// O papel é assinado no token para permitir autorização stateless (sem consulta ao banco a cada request).
+// Em troca, mudanças de papel só valem após o token expirar (24h); a desativação já bloqueia o login.
+const generateToken = ({ id, nome, papel }) => jwt.sign({ id, nome, papel }, process.env.JWT_SECRET, { expiresIn: 86400 });
 
 export default {
   login

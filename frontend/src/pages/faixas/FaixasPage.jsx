@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { faixasMock } from '../../assets/Dados';
 import { PageContainer, AddButton, FilterInput, Header, TitleGroup, EditButton, BeltPreview, BeltPrimary, BeltSecondary } from './FaixasStyle';
 import { FaPlus } from 'react-icons/fa'
@@ -13,13 +13,12 @@ export function FaixasPage() {
     const [modalAberto, setModalAberto]         = useState(false);
     const [faixaSelecionada, setFaixaSelecionada] = useState(null);
 
-    const getAll = useCallback(async () =>{
-        const response = await getAllFaixas();
-        // eslint-disable-next-line no-console
-        console.log(response, 'response');
-    },[]);
+    useEffect(() => {
+        getAllFaixas()
+            .then((response) => console.log(response, 'response'))
+            .catch((error) => console.error('Falha ao carregar faixas', error));
+    }, []);
 
-getAll();
     const faixasFiltradas = useMemo(() =>
         faixas.filter(f =>
             f.nome.toLowerCase().includes(filtro.toLowerCase())
