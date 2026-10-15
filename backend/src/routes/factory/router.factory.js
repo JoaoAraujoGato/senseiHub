@@ -51,7 +51,8 @@ export default function routerFactory({
 
   router.post('/', authMiddleware, api.create);
 
-  router.get('/', authMiddleware, pagination(model, sortOptions), api.getAll);
+  // router.get('/', authMiddleware, pagination(model, sortOptions), api.getAll);
+  router.get('/', pagination(model, sortOptions), api.getAll);
 
   router.get('/query', authMiddleware, api.query, pagination(model, sortOptions), api.respond);
 

@@ -34,7 +34,7 @@ const FAIXA_FIELDS = [
 
 const DEFAULT_VALUES = { nome: '', corPrincipalHex: '#000000', corSecundariaHex: '#000000' };
 
-export function FaixaModal({ aberto, onFechar, onSalvar, faixaSelecionada }) {
+export function FaixaModal({ aberto = false, onFechar, onSalvar, faixaSelecionada }) {
   const isEdicao = !!faixaSelecionada?.nome;
 
   const defaultValues = useMemo(() => isEdicao
@@ -61,13 +61,6 @@ export function FaixaModal({ aberto, onFechar, onSalvar, faixaSelecionada }) {
     />
   );
 }
-
-FaixaModal.defaultProps = {
-  aberto: false,
-  onFechar: () => {},
-  onSalvar: () => {},
-  faixaSelecionada: null,   // null é mais semântico que {} para "nenhum"
-};
 
 FaixaModal.propTypes = {
   aberto:            PropTypes.bool,

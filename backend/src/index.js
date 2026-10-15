@@ -1,5 +1,6 @@
 import 'dotenv/config';
 
+import cors from 'cors';
 import express from "express";
 import connectDB from './database/db.js';
 
@@ -11,6 +12,7 @@ const port = process.env.PORT || 3000;
 // Connect to MongoDB
 connectDB();
 
+app.use(cors());
 app.use(express.json());
 
 registerRoutes(app);

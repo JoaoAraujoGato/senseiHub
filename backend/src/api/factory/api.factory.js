@@ -52,6 +52,11 @@ const apiFactory = (model, entityName, options = {}) => {
         }
     };
 
+    const getAll = async (req, res) => {
+        // A lógica para realizar a busca é pelo pagination
+        res.status(200).json(req.paginatedResults);
+    };
+
     const query = async (req, res, next) => {       // 👈 vira middleware também
         const { mode, ...filtros } = req.body;
 
@@ -64,11 +69,8 @@ const apiFactory = (model, entityName, options = {}) => {
         }
     };
 
-    const getAll = async (req, res) => {
-        res.status(200).json(req.paginatedResults);
-    };
-
     const getById = async (req, res) => {
+        // A lógica para realizar a busca por id é feita pelo validEntity
         try {
             res.status(200).json(req[entityKey]);
         } catch (err) {

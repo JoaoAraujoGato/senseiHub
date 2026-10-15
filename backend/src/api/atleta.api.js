@@ -9,37 +9,31 @@ const baseCrud = apiFactory(atletaModel, ENTITY_INFO.ENTITY_INFO_ATLETA.MODEL_NA
 });
 
 const customMethods = {
-    getByTurma: async (req, res) => {
-        const { turmaId } = req.params;
+    getByTurma: async ({ turmaId }) => {
         try {
             const atletas = await atletaModel
                 .find({ turmas: turmaId })
                 .populate('faixa')
                 .populate('turmas');
 
-            if (!atletas.length) {
-                return res.status(404).json({ message: 'Nenhum atleta encontrado nessa turma' });
-            }
+            if (!atletas.length) throw new Error('Nenhum atleta encontrado nessa turma');
 
-            res.status(200).json(atletas);
+            return atletas;
         } catch (err) {
-            res.status(500).json({ error: err.message, message: 'Falha ao buscar atletas da turma' });
+            throw new Error({ error: err.message, message: 'Falha ao buscar atletas da turma' });
         }
     },
-    getByFaixa: async (req, res) => {
-        const { faixaId } = req.params;
+    getByFaixa: async ({ faixaId }) => {
         try {
             const atletas = await atletaModel
                 .find({ faixa: faixaId })
                 .populate('faixa');
 
-            if (!atletas.length) {
-                return res.status(404).json({ message: 'Nenhum atleta encontrado nessa faixa' });
-            }
+            if (!atletas.length) throw new Error('Nenhum atleta encontrado nessa faixa');
 
-            res.status(200).json(atletas);
+            return atletas;
         } catch (err) {
-            res.status(500).json({ error: err.message, message: 'Falha ao buscar atletas da faixa' });
+            throw new Error({ error: err.message, message: 'Falha ao buscar atletas da faixa' });
         }
     },
 };

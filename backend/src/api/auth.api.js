@@ -3,27 +3,20 @@ import jwt from "jsonwebtoken";
 
 import professorModel from '../models/Professor.model.js';
 
-const login = async (req, res) => {
-    const { email, senha } = req.body;
-
+const login = async ({ email, senha }) => {
     const professor = await professorModel.findOne({ email }).select('+senha');
 
-    if (!professor) {
-        return res.status(404).json({ message: "Professor não encontrado" });
-    }
+    if (!professor) throw new Error("Professor não encontrado");
 
     try {
         const senhaValida = bcrypt.compareSync(senha, professor?.senha);
 
-        if (!senhaValida) {
-            return res.status(401).json({ message: "Credenciais inválidas" });
-        }
+        if (!senhaValida) throw new Error("Credenciais inválidas");
 
-        // Geração do token (substitua pela lógica real)
         const token = generateToken({ id: professor?._id, nome: professor?.nome });
-        res.status(200).json({ message: "Login bem-sucedido", token });
+        return({ message: "Login bem-sucedido", token });
     } catch (err) {
-        res.status(500).json({ error: err.message, message: "Erro ao processar login" });
+        throw new Error({ error: err.message, message: "Erro ao processar login"});
     }
 }
 

@@ -5,13 +5,21 @@ import { FaPlus } from 'react-icons/fa'
 import { MdEdit } from 'react-icons/md'
 import { FaixaModal } from './FaixasModal';
 import { Table } from '../../components/table/Table';
+import { getAllFaixas } from '../../services/faixaServices';
 
 export function FaixasPage() {
-    const [faixas, setFaixas]                   = useState([...faixasMock])
-    const [filtro, setFiltro]                   = useState('')
-    const [modalAberto, setModalAberto]         = useState(false)
-    const [faixaSelecionada, setFaixaSelecionada] = useState(null)
+    const [faixas, setFaixas]                   = useState([...faixasMock]);
+    const [filtro, setFiltro]                   = useState('');
+    const [modalAberto, setModalAberto]         = useState(false);
+    const [faixaSelecionada, setFaixaSelecionada] = useState(null);
 
+    const getAll = useCallback(async () =>{
+        const response = await getAllFaixas();
+        // eslint-disable-next-line no-console
+        console.log(response, 'response');
+    },[]);
+
+getAll();
     const faixasFiltradas = useMemo(() =>
         faixas.filter(f =>
             f.nome.toLowerCase().includes(filtro.toLowerCase())

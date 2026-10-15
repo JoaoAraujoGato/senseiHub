@@ -45,7 +45,7 @@ export function Table({ colunas, dados, emptyMessage = 'Nenhum registro encontra
                         {colunas.map((col) => (
                             <Th
                                 key={col.chave}
-                                style={{ width: col?.largura ?? 'auto', 'text-align': col?.textAlign ?? 'start' }}  // largura opcional por coluna
+                                style={{ width: col?.largura ?? 'auto', textAlign: col?.textAlign ?? 'start' }}  // largura opcional por coluna
                             >
                                 {col.titulo}
                             </Th>
@@ -63,7 +63,7 @@ export function Table({ colunas, dados, emptyMessage = 'Nenhum registro encontra
                         dados.map((item, index) => (
                             <tr key={item._id ?? index}>
                                 {colunas.map((col) => (
-                                    <Td key={col.chave} style={{ 'text-align': col?.textAlign ?? 'start' }}>
+                                    <Td key={col.chave} style={{ textAlign: col?.textAlign ?? 'start' }}>
                                         {col.render   // render customizado ou valor direto
                                             ? col.render(item)
                                             : item[col.chave]
@@ -90,8 +90,4 @@ Table.propTypes = {
             render:  PropTypes.func,                // (item) => ReactNode
         })
     ).isRequired,
-}
-
-Table.defaultProps = {
-    emptyMessage: 'Nenhum registro encontrado.',
 }
