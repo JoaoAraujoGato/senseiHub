@@ -1,55 +1,78 @@
 import styled from "styled-components"
+import { NavLink } from "react-router-dom"
 
-export const Container = styled.div`
-    width: 240px;
-    min-height: 100vh;
+export const Container = styled.aside`
+    width: ${({ $aberta }) => ($aberta ? '240px' : '0')};
+    flex-shrink: 0;
+    height: 100vh;
+    position: sticky;
+    top: 0;
     background: #000000;
-    border-right: 1px solid #252525;
-    display: flex;          
-    flex-direction: column; 
+    border-right: 1px solid ${({ $aberta }) => ($aberta ? '#252525' : 'transparent')};
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width 0.2s ease;
 `
 
 export const Imagem = styled.div`
     padding-bottom: 1rem;
     border-bottom: 1px solid #252525;
+    white-space: nowrap;
 `
 
 export const Menu = styled.nav`
     padding: 1rem 0.5rem;
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
 `
 
-export const Item = styled.button`
-    width: 100%;
+export const Grupo = styled.div`
+    margin-bottom: 1rem;
+`
 
-    background: ${({ $active }) =>
-        $active
-            ? "rgba(125, 23, 23, 0.656)"
-            : "transparent"};
+export const GrupoTitulo = styled.p`
+    margin: 0.5rem 0 0.3rem;
+    padding: 0 1rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05rem;
+    color: #6b7280;
+    white-space: nowrap;
+`
 
-    border: none;
-    border-left: 3px solid ${({ $active }) =>
-        $active ? "rgba(220, 80, 80, 0.9)" : "transparent"}; // 👈 borda esquerda
-
-    color: #FFFF;
-
+export const Item = styled(NavLink)`
     display: flex;
     align-items: center;
     justify-content: space-between;
-
-    padding: 0.9rem 1rem;
+    width: 100%;
+    padding: 0.7rem 1rem;
+    margin: 0.1rem 0;
     border-radius: 0.5rem;
-    cursor: pointer;
+    border-left: 3px solid transparent;
+    color: #ffffff;
+    text-decoration: none;
+    font-size: 0.9rem;
+    white-space: nowrap;
     transition: 0.2s ease;
 
-    &:focus {
-        outline: none; // 👈 Tira o contorno padrão do navegador ao clicar em um item
+    &:hover {
+        background: #252525;
     }
 
-    &:hover {
-        background: ${({ $active }) =>
-        $active
-            ? "rgba(199, 37, 37, 0.523)" // 👈 corrigir hover (era branco no branco)
-            : "#252525"};
+    &:focus {
+        outline: none;
+    }
+
+    &.active {
+        background: rgba(125, 23, 23, 0.656);
+        border-left-color: rgba(220, 80, 80, 0.9);
+    }
+
+    &.active:hover {
+        background: rgba(199, 37, 37, 0.523);
     }
 `
 
@@ -58,25 +81,14 @@ export const LeftContent = styled.div`
     align-items: center;
     gap: 0.8rem;
 
-    i {
-        font-size: 1rem;
-    }
-
     span {
         font-size: 0.9rem;
     }
 `
 
-export const Badge = styled.span`
-    color: #EAB308;
-    font-size: 0.6rem;
-    font-weight: 700;
-`
-
 export const Footer = styled.div`
     padding: 1rem 0.5rem;
     border-top: 1px solid #252525;
-    margin-top: auto;
 `
 
 export const Profile = styled.div`
@@ -89,9 +101,10 @@ export const Profile = styled.div`
     transition: 0.2s ease;
 
     &:hover {
-        background: rgba(0, 0, 0, 0.05);
+        background: rgba(255, 255, 255, 0.04);
     }
 `
+
 export const LogoutButton = styled.button`
     background: transparent;
     border: none;
@@ -112,10 +125,6 @@ export const LogoutButton = styled.button`
     &:focus {
         outline: none;
     }
-
-    i {
-        font-size: 1rem;
-    }
 `
 
 export const Avatar = styled.div`
@@ -135,15 +144,14 @@ export const Avatar = styled.div`
 export const ProfileInfo = styled.div`
     display: flex;
     flex-direction: column;
-    padding-left: 4px;
     gap: 0.2rem;
+    white-space: nowrap;
 `
 
 export const ProfileName = styled.span`
     font-size: 0.9rem;
     font-weight: 600;
     color: #ffffff;
-    padding-left: 4px;
 `
 
 export const ProfileBelt = styled.span`
@@ -154,7 +162,8 @@ export const ProfileBelt = styled.span`
     display: flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0px 8px 0px 8px;
+    padding: 0 8px;
+    width: fit-content;
 
     &::before {
         content: '';

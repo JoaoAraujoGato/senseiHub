@@ -1,11 +1,16 @@
 import  PropTypes from 'prop-types';
 import styled from "styled-components"
 
+const Wrapper = styled.div`
+    display: flex;
+    padding: 1rem 0 0 1rem;
+`
+
 const StyledImage = styled.img`
-    width: ${({ width }) => width || "120px"};
-    height: ${({ height }) => height || "auto"};
-    object-fit: ${({ fit }) => fit || "contain"};
-    border-radius: ${({ radius }) => radius || "0"};
+    width: ${({ $width }) => $width || "120px"};
+    height: ${({ $height }) => $height || "auto"};
+    object-fit: ${({ $fit }) => $fit || "contain"};
+    border-radius: ${({ $radius }) => $radius || "0"};
 `
 
 function ImageLogo({
@@ -18,17 +23,17 @@ function ImageLogo({
     ...props
 }) {
     return (
-        <div className='d-flex pl-3 pt-3'>
+        <Wrapper>
             <StyledImage
                 src={src}
                 alt={alt}
-                width={width}
-                height={height}
-                fit={fit}
-                radius={radius}
+                $width={width}
+                $height={height}
+                $fit={fit}
+                $radius={radius}
                 {...props}
             />
-        </div>
+        </Wrapper>
     )
 }
 

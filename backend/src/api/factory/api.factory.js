@@ -48,6 +48,7 @@ const apiFactory = (model, entityName, options = {}) => {
 
             res.status(201).json({ message: messages.created ?? `${entityName} criado com sucesso`, [entityKey]: doc });
         } catch (err) {
+            if (err.code === 11000) return res.status(409).json({ message: messages.duplicate ?? 'Registro já existe' });
             res.status(400).json({ error: err.message, message: messages.createFail ?? `Falha ao criar ${entityName}` });
         }
     };
@@ -87,9 +88,10 @@ const apiFactory = (model, entityName, options = {}) => {
         }
 
         try {
-            const doc = await model.findByIdAndUpdate(id, data, { new: true });
+            const doc = await model.findByIdAndUpdate(id, data, { new: true, runValidators: true });
             res.status(200).json({ message: messages.updated ?? `${entityName} atualizado com sucesso`, [entityKey]: doc });
         } catch (err) {
+            if (err.code === 11000) return res.status(409).json({ message: messages.duplicate ?? 'Registro já existe' });
             res.status(400).json({ error: err.message, message: messages.updateFail ?? `Falha ao atualizar ${entityName}` });
         }
     };

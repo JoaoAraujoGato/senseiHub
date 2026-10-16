@@ -60,14 +60,21 @@ export const Field = styled.div`
         color: #fcfcfc;
     }
 
-    input {
+    input, select, textarea {
         padding: 0.6rem 0.8rem;
         border: 1px solid #535353;
         background-color: #1f2830;
         border-radius: 0.4rem;
         font-size: 0.9rem;
         outline: none;
+        color: #fff;
+        font-family: inherit;
         &:focus { border-color: #C53A2C; }
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 4rem;
     }
 
     span {
@@ -86,28 +93,6 @@ export const Actions = styled.div`
     display: flex;
     justify-content: flex-end;
     gap: 0.8rem;
-`
-
-export const Button = styled.button`
-    display: flex;
-    justify-content: center;
-    padding: 0.6rem 1.2rem;
-    border-radius: 0.4rem;
-    width: 5.5rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: 0.2s ease;
-
-    background: ${({ $variant }) => $variant === 'primary' ? '#2e6014' : '#cc3325'};
-    color: #ffffff;
-
-    &:hover {
-        opacity: 0.85;
-    }
-
-    &:focus { outline: none; }
 `
 
 // ─── ColorPickerField ─────────────────────────────────────────────────────────

@@ -1,7 +1,8 @@
 import styled from "styled-components"
-import logo from "../../assets/images/logoDark.png"
-import Button from "../buttons/Button"
-import ImageLogo from "../image/ImageLogo"
+import { BiLogOut } from 'react-icons/bi'
+import logo from "@/assets/images/logoDark.png"
+import { Button } from "@/components/ui/Button"
+import ImageLogo from "@/components/image/ImageLogo"
 
 const StyledNavBar = styled.nav`
     display: flex;
@@ -27,7 +28,7 @@ export function Navbar(){
                     height="3.5rem"
                     radius="8px"
                 />
-                <Button icon="box-arrow-right" label="Login professor" fontSize={"0.8rem"}/>
+                <Button icon={<BiLogOut />} size="sm">Login professor</Button>
             </StyledNavBar>
         </div>
     )

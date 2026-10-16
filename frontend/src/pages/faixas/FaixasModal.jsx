@@ -1,19 +1,18 @@
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
-import { ModalGenerico } from '../../components/modal/ModalGenerico';
+import { ModalGenerico } from '@/components/modal/ModalGenerico';
+import { faixaSchema } from '@/shared/schemas/faixaSchema';
 
 const FAIXA_FIELDS = [
   {
     name: 'nome',
     label: 'Nome',
     placeholder: 'Ex: Azul',
-    rules: { required: 'Nome é obrigatório' },
   },
   {
     name: 'ordem',
     label: 'Ordem',
     placeholder: 'Ex: 3',
-    rules: { required: 'Ordem é obrigatória' },
   },
   {
     name: 'corPrincipalHex',
@@ -21,18 +20,18 @@ const FAIXA_FIELDS = [
     type: 'color',
     row: 'cores',
     style: { flex: 1 },
-    rules: { required: 'Obrigatório' },
   },
   {
     name: 'corSecundariaHex',
     label: 'Cor Secundária (opcional)',
     type: 'color',
     row: 'cores',
+    optional: true,
     style: { flex: 1 },
   },
 ];
 
-const DEFAULT_VALUES = { nome: '', corPrincipalHex: '#000000', corSecundariaHex: '#000000' };
+const DEFAULT_VALUES = { nome: '', ordem: '', corPrincipalHex: '#000000', corSecundariaHex: '#000000' };
 
 export function FaixaModal({ aberto = false, onFechar, onSalvar, faixaSelecionada }) {
   const isEdicao = !!faixaSelecionada?.nome;
@@ -40,6 +39,7 @@ export function FaixaModal({ aberto = false, onFechar, onSalvar, faixaSelecionad
   const defaultValues = useMemo(() => isEdicao
     ? {
         nome:             faixaSelecionada.nome,
+        ordem:            faixaSelecionada.ordem,
         corPrincipalHex:  faixaSelecionada.corPrincipalHex,
         corSecundariaHex: faixaSelecionada.corSecundariaHex ?? '#000000',
       }
@@ -56,8 +56,8 @@ export function FaixaModal({ aberto = false, onFechar, onSalvar, faixaSelecionad
       titulo={isEdicao ? 'Editar Faixa' : 'Nova Faixa'}
       submitLabel={isEdicao ? 'Salvar' : 'Cadastrar'}
       fields={FAIXA_FIELDS}
+      schema={faixaSchema}
       defaultValues={defaultValues}
-      colorPreview  // 👈 nova prop que ativa o efeito
     />
   );
 }
@@ -68,6 +68,7 @@ FaixaModal.propTypes = {
   onSalvar:          PropTypes.func,
   faixaSelecionada:  PropTypes.shape({
     nome:             PropTypes.string,
+    ordem:            PropTypes.number,
     corPrincipalHex:  PropTypes.string,
     corSecundariaHex: PropTypes.string,
   }),

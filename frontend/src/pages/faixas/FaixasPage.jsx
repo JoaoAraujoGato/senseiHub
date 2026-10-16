@@ -1,64 +1,78 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { faixasMock } from '../../assets/Dados';
-import { PageContainer, AddButton, FilterInput, Header, TitleGroup, EditButton, BeltPreview, BeltPrimary, BeltSecondary } from './FaixasStyle';
+import { useMemo, useState } from 'react';
+import { PageContainer, PageHeader, TitleGroup } from '@/components/layout/Page';
+import { BeltPreview, BeltPrimary, BeltSecondary } from './FaixasStyle';
 import { FaPlus } from 'react-icons/fa'
-import { MdEdit } from 'react-icons/md'
+import { MdEdit, MdBlock } from 'react-icons/md'
 import { FaixaModal } from './FaixasModal';
-import { Table } from '../../components/table/Table';
-import { getAllFaixas } from '../../services/faixaServices';
+import { Table } from '@/components/table/Table';
+import { Button } from '@/components/ui/Button';
+import { IconButton } from '@/components/ui/IconButton';
+import { Input } from '@/components/ui/Input';
+import { Badge } from '@/components/ui/Badge';
+import { Spinner } from '@/components/ui/Spinner';
+import { ErrorState } from '@/components/ui/ErrorState';
+import {
+    useGetFaixasQuery,
+    useCreateFaixaMutation,
+    useUpdateFaixaMutation,
+    useRemoveFaixaMutation,
+} from '@/features/faixa/faixaApi';
 
 export function FaixasPage() {
-    const [faixas, setFaixas]                   = useState([...faixasMock]);
-    const [filtro, setFiltro]                   = useState('');
-    const [modalAberto, setModalAberto]         = useState(false);
+    const [filtro, setFiltro]               = useState('');
+    const [modalAberto, setModalAberto]     = useState(false);
     const [faixaSelecionada, setFaixaSelecionada] = useState(null);
 
-    useEffect(() => {
-        getAllFaixas()
-            .then((response) => console.log(response, 'response'))
-            .catch((error) => console.error('Falha ao carregar faixas', error));
-    }, []);
+    const { data, isLoading, isError } = useGetFaixasQuery({ limit: 100 }); // ponytail: limite alto; paginação real se passar de 100
+    const [criarFaixa]    = useCreateFaixaMutation();
+    const [atualizarFaixa] = useUpdateFaixaMutation();
+    const [inativarFaixa] = useRemoveFaixaMutation();
+
+    const faixas = useMemo(() => data?.results ?? [], [data]);
 
     const faixasFiltradas = useMemo(() =>
-        faixas.filter(f =>
-            f.nome.toLowerCase().includes(filtro.toLowerCase())
+        faixas.filter(f => f.nome.toLowerCase().includes(filtro.toLowerCase())
         ), [faixas, filtro]
     )
 
-    const abrirModalCriacao = useCallback(() => {
+    const abrirModalCriacao = () => {
         setFaixaSelecionada(null)
         setModalAberto(true)
-    },[]);
+    };
 
-    const abrirModalEdicao = useCallback((faixa) => {
+    const abrirModalEdicao = (faixa) => {
         setFaixaSelecionada(faixa)
         setModalAberto(true)
-    },[]);
+    };
 
-    const fecharModal = useCallback(() => {
+    const fecharModal = () => {
         setModalAberto(false)
         setFaixaSelecionada(null)
-    },[]);
+    };
 
-    const salvarFaixa = useCallback((dados) => {
-        if (faixaSelecionada) {
-            // edição
-            setFaixas(prev => prev.map(f =>
-                f._id === faixaSelecionada._id ? { ...f, ...dados } : f
-            ))
-        } else {
-            // criação
-            setFaixas(prev => [...prev, {
-                ...dados,
-                _id: `faixa-${Date.now()}`,
-                ordem: prev.length + 1,
-                dataCadastro: new Date(),
-            }])
+    const salvarFaixa = async (dados) => {
+        try {
+            if (faixaSelecionada) {
+                await atualizarFaixa({ id: faixaSelecionada._id, ...dados }).unwrap();
+            } else {
+                await criarFaixa(dados).unwrap();
+            }
+            fecharModal();
+        } catch (err) {
+            alert(err?.data?.message ?? 'Falha ao salvar faixa');
         }
-        fecharModal()
-    },[faixaSelecionada, fecharModal]);
+    };
 
-    const colunas = useMemo(() => [
+    const handleInativar = async (faixa) => {
+        if (!window.confirm(`Inativar a faixa "${faixa.nome}"?`)) return;
+        try {
+            await inativarFaixa(faixa._id).unwrap();
+        } catch {
+            alert('Falha ao inativar faixa');
+        }
+    };
+
+    const colunas = [
         {
             chave: 'nome',
             titulo: 'Nome',
@@ -83,42 +97,66 @@ export function FaixasPage() {
             textAlign: 'center'
         },
         {
-            chave: 'acoes',
-            titulo: '',
-            largura: '60px',
+            chave: 'status',
+            titulo: 'Status',
+            largura: '100px',
+            textAlign: 'center',
             render: (faixa) => (
-                <EditButton onClick={() => abrirModalEdicao(faixa)}>
-                    <MdEdit size={18} />
-                </EditButton>
+                <Badge tone={faixa.status === false ? 'neutral' : 'success'}>
+                    {faixa.status === false ? 'Inativa' : 'Ativa'}
+                </Badge>
             ),
         },
-    ], [abrirModalEdicao])
+        {
+            chave: 'acoes',
+            titulo: '',
+            largura: '90px',
+            render: (faixa) => (
+                <>
+                    <IconButton onClick={() => abrirModalEdicao(faixa)} title="Editar">
+                        <MdEdit size={18} />
+                    </IconButton>
+                    {faixa.status !== false && (
+                        <IconButton onClick={() => handleInativar(faixa)} title="Inativar">
+                            <MdBlock size={18} />
+                        </IconButton>
+                    )}
+                </>
+            ),
+        },
+    ]
 
     return (
         <PageContainer>
-            <Header>
+            <PageHeader>
                 <TitleGroup>
                     <h1>Faixas</h1>
                     <p>Gerencie as faixas e graduações cadastradas no sistema.</p>
                 </TitleGroup>
 
-                <AddButton onClick={abrirModalCriacao}>
-                    <FaPlus size={14} />
+                <Button icon={<FaPlus size={14} />} onClick={abrirModalCriacao}>
                     Nova Faixa
-                </AddButton>
-            </Header>
+                </Button>
+            </PageHeader>
 
-            <FilterInput
+            <Input
                 placeholder="Filtrar por nome..."
                 value={filtro}
                 onChange={e => setFiltro(e.target.value)}
+                style={{ maxWidth: 320, marginBottom: '1rem' }}
             />
 
-            <Table
-                colunas={colunas}
-                dados={faixasFiltradas}
-                emptyMessage="Nenhuma faixa encontrada."
-            />
+            {isLoading ? (
+                <Spinner label="Carregando faixas..." />
+            ) : isError ? (
+                <ErrorState>Não foi possível carregar as faixas. Verifique a conexão com o servidor.</ErrorState>
+            ) : (
+                <Table
+                    colunas={colunas}
+                    dados={faixasFiltradas}
+                    emptyMessage="Nenhuma faixa encontrada."
+                />
+            )}
 
             <FaixaModal
                 aberto={modalAberto}

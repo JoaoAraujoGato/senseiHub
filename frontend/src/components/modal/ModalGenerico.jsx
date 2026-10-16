@@ -1,11 +1,15 @@
 import PropTypes from 'prop-types'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Actions, Button, CloseButton, Field, Modal, ModalHeader, ModalTitle, Overlay } from './ModalGenericoStyle'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Actions, CloseButton, Field, Modal, ModalHeader, ModalTitle, Overlay } from './ModalGenericoStyle'
+import { Button } from '@/components/ui/Button'
 import { ColorPickerField } from './ColorPickerField'
 
-export function ModalGenerico({ aberto, onFechar, onSalvar, titulo, fields, defaultValues, submitLabel }) {
-  const { register, handleSubmit, reset, control, formState: { errors } } = useForm()
+export function ModalGenerico({ aberto, onFechar, onSalvar, titulo, fields, defaultValues, submitLabel, schema }) {
+  const { register, handleSubmit, reset, control, formState: { errors } } = useForm({
+    resolver: schema ? zodResolver(schema) : undefined,
+  })
 
   useEffect(() => {
     reset(defaultValues ?? {})
@@ -42,6 +46,45 @@ export function ModalGenerico({ aberto, onFechar, onSalvar, titulo, fields, defa
         );
     }
 
+    if (f.type === 'select') {
+      return (
+        <Field key={f.name} style={f.style}>
+          <label>{f.label}</label>
+          <select {...register(f.name)}>
+            <option value="">Selecione...</option>
+            {(f.options ?? []).map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          {errors[f.name] && <span>{errors[f.name].message}</span>}
+        </Field>
+      );
+    }
+
+    if (f.type === 'multiselect') {
+      return (
+        <Field key={f.name} style={f.style}>
+          <label>{f.label}</label>
+          <select multiple size={f.size ?? 4} {...register(f.name)}>
+            {(f.options ?? []).map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          {errors[f.name] && <span>{errors[f.name].message}</span>}
+        </Field>
+      );
+    }
+
+    if (f.type === 'textarea') {
+      return (
+        <Field key={f.name} style={f.style}>
+          <label>{f.label}</label>
+          <textarea rows={f.rows ?? 3} placeholder={f.placeholder} {...register(f.name)} />
+          {errors[f.name] && <span>{errors[f.name].message}</span>}
+        </Field>
+      );
+    }
+
     return (
       <Field key={f.name} style={f.style}>
         <label>{f.label}</label>
@@ -72,8 +115,8 @@ export function ModalGenerico({ aberto, onFechar, onSalvar, titulo, fields, defa
           )}
 
           <Actions style={{ marginTop: '1rem' }}>
-            <Button type="button" onClick={onFechar}>Cancelar</Button>
-            <Button type="submit" $variant="primary">{submitLabel}</Button>
+            <Button type="button" variant="secondary" onClick={onFechar}>Cancelar</Button>
+            <Button type="submit" variant="primary">{submitLabel}</Button>
           </Actions>
         </form>
       </Modal>
@@ -97,11 +140,18 @@ ModalGenerico.propTypes = {
   titulo: PropTypes.string.isRequired,
   submitLabel: PropTypes.string,
   defaultValues: PropTypes.object,
+  schema: PropTypes.object,
   fields: PropTypes.arrayOf(PropTypes.shape({
     name: PropTypes.string.isRequired,
     label: PropTypes.string.isRequired,
-    type: PropTypes.string,          // 'text' | 'color' | 'email' …
+    type: PropTypes.string,          // 'text' | 'color' | 'email' | 'password' | 'select' …
     placeholder: PropTypes.string,
+    options: PropTypes.arrayOf(PropTypes.shape({
+      value: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+    })),                             // usado quando type === 'select' | 'multiselect'
+    size: PropTypes.number,          // linhas visíveis do multiselect
+    rows: PropTypes.number,          // linhas do textarea
     rules: PropTypes.object,         // react-hook-form rules
     row: PropTypes.string,           // campos com mesmo row ficam lado a lado
     style: PropTypes.object,

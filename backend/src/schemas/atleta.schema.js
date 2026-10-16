@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { GENEROS, ENTITY_INFO, STATUS_ATLETA, RESPOSAVEL_PARENTESCO } from '../../regras-negocio/constantes/index.js';
+import { EMAIL } from '#shared/rules.js';
 import bcrypt from 'bcryptjs';
 
 const { Schema } = mongoose;
@@ -17,14 +18,16 @@ export const getSchema = function() {
         },
         nomeUsuario: {
             type: String,
-            unique: true
+            unique: true,
+            sparse: true
         },
         email: {
             type: String,
             trim: true,
             lowercase: true,
             unique: true,
-            validate: [/\b[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}\b/, 'Email inválido'],
+            sparse: true,
+            validate: [EMAIL, 'Email inválido'],
         },
         senha: {
             type: String,

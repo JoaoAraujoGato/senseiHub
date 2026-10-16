@@ -53,10 +53,6 @@ export const pagination = (model, sortOptions = {}) => {
                 .limit(limit * 1)
                 .skip((page - 1) * limit);
 
-            if (results.length === 0) {
-                return res.status(404).json({ message: 'Nenhum resultado encontrado' });
-            }
-
             const nextUrl = page * limit < total
                 ? `${currentUrl}?page=${parseInt(page) + 1}&limit=${limit}`
                 : null;

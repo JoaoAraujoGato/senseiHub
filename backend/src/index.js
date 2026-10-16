@@ -2,6 +2,8 @@ import 'dotenv/config';
 
 import cors from 'cors';
 import express from "express";
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import connectDB from './database/db.js';
 
 import registerRoutes from './routes/registerRoutes.js';
@@ -12,8 +14,12 @@ const port = process.env.PORT || 3000;
 // Connect to MongoDB
 connectDB();
 
-app.use(cors());
+// CSP desativado para não bloquear o Swagger UI em /doc
+app.use(helmet({ contentSecurityPolicy: false }));
+// CORS restrito por env (CORS_ORIGIN="http://a,http://b"); aberto se não definido
+app.use(cors({ origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : true }));
 app.use(express.json());
+app.use(rateLimit({ windowMs: 15 * 60 * 1000, limit: 300, standardHeaders: true, legacyHeaders: false }));
 
 registerRoutes(app);
 

@@ -1,16 +1,12 @@
 import './App.css'
 import { GlobalStyled } from './GlobalStyled'
-import { FaixasPage } from './pages/faixas/FaixasPage'
-// import { DashboardPage } from './pages/dashboard/DashboardPage'
-// import { HomePage } from './pages/home/HomePage'
+import { AppRoutes } from './routes/AppRoutes'
 
 function App() {
   return (
     <>
       <GlobalStyled />
-      {/* <HomePage /> */}
-      {/* <DashboardPage /> */}
-      <FaixasPage />
+      <AppRoutes />
     </>
   )
 }
