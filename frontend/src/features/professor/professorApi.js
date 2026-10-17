@@ -8,6 +8,7 @@ export const professorApi = baseApi.injectEndpoints({
 
 export const {
     useGetProfessorsQuery,
+    useGetProfessorQuery,
     useCreateProfessorMutation,
     useUpdateProfessorMutation,
     useRemoveProfessorMutation,

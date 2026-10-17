@@ -1,14 +1,13 @@
-// controllers/Professor.controller.js
-
 import { ENTITY_INFO } from '../../regras-negocio/constantes/entities-info.js';
 import professorModel from '../models/Professor.model.js';
+import turmaModel from '../models/Turma.model.js';
 import { QUERY_MODES } from '../utils/query.utils.js';
 import apiFactory from './factory/api.factory.js';
 
 const baseCrud = apiFactory(professorModel, ENTITY_INFO.ENTITY_INFO_PROFESSOR.MODEL_NAME, {
     afterCreate: (doc) => delete doc._doc.senha,
     textFields: [ 'nome', 'email' ],
-    queryMode: QUERY_MODES.PARTIAL,  
+    queryMode: QUERY_MODES.PARTIAL,
 });
 
 const getByEmail = async (req, res) => {
@@ -35,12 +34,25 @@ const deactivate = async (req, res) => {
     }
 };
 
+// Exclui o professor e limpa as referências (remove de todas as turmas).
+const deleteById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await turmaModel.updateMany(
+            { professorResponsavel: id },
+            { $pull: { professorResponsavel: id } }
+        );
+        await professorModel.findByIdAndDelete(id);
+
+        res.status(200).json({ message: 'Professor excluído com sucesso' });
+    } catch (err) {
+        res.status(400).json({ error: err.message, message: 'Falha ao excluir professor' });
+    }
+};
+
 export default {
     ...baseCrud,
-    // // sobrescreve o create padrão
-    // create: async (req, res) => {
-    //     // lógica completamente diferente...
-    // },
     getByEmail,
     deactivate,
+    deleteById,
 };

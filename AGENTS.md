@@ -99,6 +99,11 @@ Atenção: **não** há scripts de `lint` para o backend. Validação automatiza
 - **Testes:** `npm test` (Vitest + Testing Library; config em `vitest.config.js`). Cobrem lógica pura (schemas zod, utils) e o `authMiddleware`; o teste de componente usa `// @vitest-environment jsdom`. Não há testes de integração com DB (exigiria separar `app` de `index.js`).
 - **Campos `unique` opcionais precisam de `sparse: true`** no Mongoose (`email`, `nomeUsuario`). Sem `sparse`, o segundo documento com o campo ausente colide (null duplicado) e retorna `409`. Ao mudar um índice, rode `Model.syncIndexes()` uma vez.
 - **Navegação:** as rotas privadas ficam dentro de `AppLayout` (sidebar + topbar). O menu vem de `frontend/src/routes/navConfig.jsx` (fonte única, reusada pelo título do Topbar); o item ativo usa a classe `.active` do `NavLink`. Páginas ainda não implementadas apontam para `EmConstrucaoPage`.
+- **Rotas por convenção:** `/<plural>` = lista, `/<plural>/:id` = detalhe, `/<plural>/novo` = criar, `/<plural>/:id/editar` = editar (ex.: `/professores`, `/professores/:id`, `/professores/novo`, `/professores/:id/editar`). Atletas e Professores seguem isso.
+- **Formulários:** o `FormBase` (`components/form/`) concentra RHF + zod + campos, e é reusado tanto pelas páginas de novo/editar quanto pelo `ModalGenerico` (faixas/turmas/técnicas). Campos podem ter `when: (valores) => boolean` para exibir/esconder (ex.: campos condicionais por idade no atleta).
+- **Atleta:** `dataNascimento` é obrigatória. **Menor** → `responsaveis[]` (mãe/pai, exige ao menos 1); **maior** → `contatoEmergencia` (relação via `RELACAO_CONTATO`). Campos livres `alergias` e `observacoes` (substituiu `descricaoMedica`). Idade calculada em `frontend/src/shared/idade.js`.
+- **Listagens:** Professores em **cards** (clicar no card abre os detalhes); Atletas em tabela com a "lupa". Editar/inativar/excluir ficam nas páginas de detalhe.
+- **Excluir professor** limpa referências (remove de `turma.professorResponsavel`), então a turma pode ficar sem professor.
 
 ## 7. Referências
 

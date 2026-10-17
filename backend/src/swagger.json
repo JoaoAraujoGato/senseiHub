@@ -91,7 +91,9 @@
                                             { "nome": "Aparecida Gomes", "contato": "(11) 99999-8888", "parentesco": "mae" },
                                             { "nome": "Cesar Araujo", "contato": "(11) 98888-7777", "parentesco": "pai" }
                                         ],
-                                        "descricaoMedica": "Nenhuma condição médica conhecida.",
+                                        "contatoEmergencia": { "nome": "Ana Araujo", "parentesco": "conjugue", "parentescoOutro": "", "contato": "(11) 97777-6666" },
+                                        "alergias": "Amendoim",
+                                        "observacoes": "TEA - necessita de apoio nas aulas.",
                                         "status": "ativo",
                                         "turmas": ["507f1f77bcf86cd799439012", "507f1f77bcf86cd799439013"]
                                     }
@@ -997,8 +999,19 @@
                     "peso": { "type": "string", "example": "50" },
                     "genero": { "type": "string", "enum": ["masculino", "feminino", "outro"], "example": "masculino" },
                     "foto": { "type": "string", "example": "http//foto.com.br" },
-                    "responsaveis": { "type": "array", "items": { "$ref": "#/components/schemas/Responsavel" } },
-                    "descricaoMedica": { "type": "string" },
+                    "responsaveis": { "type": "array", "items": { "$ref": "#/components/schemas/Responsavel" }, "description": "Usado para menores de idade" },
+                    "contatoEmergencia": {
+                        "type": "object",
+                        "description": "Usado para maiores de idade",
+                        "properties": {
+                            "nome": { "type": "string" },
+                            "parentesco": { "type": "string", "enum": ["conjugue", "mae", "pai", "irmao", "filho", "amigo", "outro"] },
+                            "parentescoOutro": { "type": "string" },
+                            "contato": { "type": "string" }
+                        }
+                    },
+                    "alergias": { "type": "string" },
+                    "observacoes": { "type": "string" },
                     "status": { "type": "string", "enum": ["ativo", "inativo"] },
                     "turmas": { "type": "array", "items": { "type": "string" }, "description": "Array de ObjectIds das turmas", "example": ["507f1f77bcf86cd799439012"] }
                 }

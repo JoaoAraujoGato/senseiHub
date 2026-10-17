@@ -16,7 +16,6 @@ export const getSchema = function() {
         },
         professorResponsavel: [{
             type: ObjectId,
-            required: true,
             ref: ENTITY_INFO.ENTITY_INFO_PROFESSOR.MODEL_NAME,
         }],
         programacao: {

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { GENEROS, ENTITY_INFO, STATUS_ATLETA, RESPOSAVEL_PARENTESCO } from '../../regras-negocio/constantes/index.js';
+import { GENEROS, ENTITY_INFO, STATUS_ATLETA, RESPOSAVEL_PARENTESCO, RELACAO_CONTATO } from '../../regras-negocio/constantes/index.js';
 import { EMAIL } from '#shared/rules.js';
 import bcrypt from 'bcryptjs';
 
@@ -51,6 +51,7 @@ export const getSchema = function() {
         foto: {
             type: String,
         },
+        // Responsáveis (usado para menores de idade)
         responsaveis: [{
             nome: {
                 type: String,
@@ -63,7 +64,20 @@ export const getSchema = function() {
                 enum: Object.values(RESPOSAVEL_PARENTESCO).map(p => p.value),
             }
         }],
-        descricaoMedica: {
+        // Contato de emergência (usado para maiores de idade)
+        contatoEmergencia: {
+            nome: { type: String },
+            parentesco: {
+                type: String,
+                enum: Object.values(RELACAO_CONTATO).map(r => r.value),
+            },
+            parentescoOutro: { type: String },
+            contato: { type: String },
+        },
+        alergias: {
+            type: String,
+        },
+        observacoes: {
             type: String,
         },
         status: {

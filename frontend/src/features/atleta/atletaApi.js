@@ -8,6 +8,7 @@ export const atletaApi = baseApi.injectEndpoints({
 
 export const {
     useGetAtletasQuery,
+    useGetAtletaQuery,
     useCreateAtletaMutation,
     useUpdateAtletaMutation,
     useRemoveAtletaMutation,

@@ -48,51 +48,10 @@ export const CloseButton = styled.button`
     &:focus { outline: none; }
 `
 
-export const Field = styled.div`
-    display: flex;
-    flex-direction: column;
-    /* gap: 0.1rem; */
-    margin-bottom: 0.5rem;
-
-    label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #fcfcfc;
-    }
-
-    input, select, textarea {
-        padding: 0.6rem 0.8rem;
-        border: 1px solid #535353;
-        background-color: #1f2830;
-        border-radius: 0.4rem;
-        font-size: 0.9rem;
-        outline: none;
-        color: #fff;
-        font-family: inherit;
-        &:focus { border-color: #C53A2C; }
-    }
-
-    textarea {
-        resize: vertical;
-        min-height: 4rem;
-    }
-
-    span {
-        font-size: 0.75rem;
-        color: #ef4444;
-    }
-`
-
 export const ColorRow = styled.div`
     display: flex;
     gap: 0.5rem;
     margin-top: 1.5rem;
-`
-
-export const Actions = styled.div`
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.8rem;
 `
 
 // ─── ColorPickerField ─────────────────────────────────────────────────────────

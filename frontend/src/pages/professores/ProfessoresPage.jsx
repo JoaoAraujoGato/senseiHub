@@ -1,32 +1,31 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PageContainer, PageHeader, TitleGroup } from '@/components/layout/Page';
 import { FaPlus } from 'react-icons/fa'
-import { MdEdit } from 'react-icons/md'
-import { Table } from '@/components/table/Table';
+import { MdEmail, MdPhone } from 'react-icons/md'
 import { Button } from '@/components/ui/Button';
-import { IconButton } from '@/components/ui/IconButton';
 import { Input } from '@/components/ui/Input';
-import { Badge } from '@/components/ui/Badge';
 import { Spinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/ui/ErrorState';
-import { ProfessoresModal } from './ProfessoresModal';
-import {
-    useGetProfessorsQuery,
-    useCreateProfessorMutation,
-    useUpdateProfessorMutation,
-} from '@/features/professor/professorApi';
+import { PAPEL_OPTIONS } from '@/shared/constants';
+import { useGetProfessorsQuery } from '@/features/professor/professorApi';
+import { useGetFaixasQuery } from '@/features/faixa/faixaApi';
+import { useGetTurmasQuery } from '@/features/turma/turmaApi';
+import { Grid, Card, Top, Avatar, Info, Nome, Meta, Faixa, Dot, Papel, Contato, Linha, Tags, Tag } from './ProfessoresStyle';
 
-const PAPEL_LABEL = { admin: 'Administrador', professor: 'Professor' };
+const initials = (nome = '') => nome.split(' ').slice(0, 2).map(n => n[0]?.toUpperCase() ?? '').join('');
+const papelLabel = (value) => PAPEL_OPTIONS.find(o => o.value === value)?.label ?? '—';
 
 export function ProfessoresPage() {
+    const navigate = useNavigate();
     const [filtro, setFiltro] = useState('');
-    const [modalAberto, setModalAberto] = useState(false);
-    const [professorSelecionado, setProfessorSelecionado] = useState(null);
 
     const { data, isLoading, isError } = useGetProfessorsQuery({ limit: 100 });
-    const [criarProfessor] = useCreateProfessorMutation();
-    const [atualizarProfessor] = useUpdateProfessorMutation();
+    const { data: faixaData } = useGetFaixasQuery({ limit: 100 });
+    const { data: turmaData } = useGetTurmasQuery({ limit: 100 });
 
+    const faixas = useMemo(() => faixaData?.results ?? [], [faixaData]);
+    const turmas = useMemo(() => turmaData?.results ?? [], [turmaData]);
     const professores = useMemo(() => data?.results ?? [], [data]);
 
     const filtrados = useMemo(() =>
@@ -34,60 +33,23 @@ export function ProfessoresPage() {
         ), [professores, filtro]
     )
 
-    const abrirCriacao = () => { setProfessorSelecionado(null); setModalAberto(true); };
-    const abrirEdicao = (professor) => { setProfessorSelecionado(professor); setModalAberto(true); };
-    const fecharModal = () => { setModalAberto(false); setProfessorSelecionado(null); };
-
-    const salvar = async (dados) => {
-        // remove campos vazios: senha vazia mantém a atual; papel/gênero vazios não são enviados
-        const limpos = Object.fromEntries(Object.entries(dados).filter(([, v]) => v !== '' && v !== undefined));
-        try {
-            if (professorSelecionado) {
-                await atualizarProfessor({ id: professorSelecionado._id, ...limpos }).unwrap();
-            } else {
-                await criarProfessor(limpos).unwrap();
-            }
-            fecharModal();
-        } catch (err) {
-            alert(err?.data?.message ?? 'Falha ao salvar professor');
-        }
-    };
-
-    const colunas = [
-        { chave: 'nome', titulo: 'Nome' },
-        { chave: 'email', titulo: 'E-mail' },
-        { chave: 'papel', titulo: 'Papel', render: (p) => PAPEL_LABEL[p.papel] ?? '—' },
-        { chave: 'numeroContato', titulo: 'Contato', render: (p) => p.numeroContato || '—' },
-        {
-            chave: 'status', titulo: 'Status', largura: '100px', textAlign: 'center',
-            render: (p) => (
-                <Badge tone={p.status === false ? 'neutral' : 'success'}>
-                    {p.status === false ? 'Inativo' : 'Ativo'}
-                </Badge>
-            ),
-        },
-        {
-            chave: 'acoes', titulo: '', largura: '60px',
-            render: (p) => (
-                <IconButton onClick={() => abrirEdicao(p)} title="Editar">
-                    <MdEdit size={18} />
-                </IconButton>
-            ),
-        },
-    ]
+    const faixaDe = (id) => faixas.find(f => f._id === id);
+    const turmasDe = (profId) => turmas
+        .filter(t => (t.professorResponsavel ?? []).some(x => (typeof x === 'string' ? x : x._id) === profId))
+        .map(t => t.nome);
 
     return (
         <PageContainer>
             <PageHeader>
                 <TitleGroup>
                     <h1>Professores</h1>
-                    <p>Gerencie os professores do dojo.</p>
+                    <p>Instrutores e administradores do dojô</p>
                 </TitleGroup>
-                <Button icon={<FaPlus size={14} />} onClick={abrirCriacao}>Novo Professor</Button>
+                <Button icon={<FaPlus size={14} />} onClick={() => navigate('/professores/novo')}>Novo Professor</Button>
             </PageHeader>
 
             <Input
-                placeholder="Filtrar por nome..."
+                placeholder="Filtrar por nome do professor..."
                 value={filtro}
                 onChange={e => setFiltro(e.target.value)}
                 style={{ maxWidth: 320, marginBottom: '1rem' }}
@@ -97,16 +59,44 @@ export function ProfessoresPage() {
                 <Spinner label="Carregando professores..." />
             ) : isError ? (
                 <ErrorState>Não foi possível carregar os professores.</ErrorState>
+            ) : filtrados.length === 0 ? (
+                <p style={{ color: '#6b7280' }}>Nenhum professor encontrado.</p>
             ) : (
-                <Table colunas={colunas} dados={filtrados} emptyMessage="Nenhum professor encontrado." />
-            )}
+                <Grid>
+                    {filtrados.map(p => {
+                        const faixa = faixaDe(p.faixa);
+                        const tags = turmasDe(p._id);
+                        return (
+                            <Card key={p._id} onClick={() => navigate(`/professores/${p._id}`)}>
+                                <Top>
+                                    <Avatar>{initials(p.nome)}</Avatar>
+                                    <Info>
+                                        <Nome>{p.nome}</Nome>
+                                        <Meta>
+                                            <Faixa>
+                                                <Dot $cor={faixa?.corPrincipalHex} />
+                                                {faixa?.nome ?? 'Sem faixa'}
+                                            </Faixa>
+                                            <Papel $admin={p.papel === 'admin'}>{papelLabel(p.papel)}</Papel>
+                                        </Meta>
+                                    </Info>
+                                </Top>
 
-            <ProfessoresModal
-                aberto={modalAberto}
-                onFechar={fecharModal}
-                onSalvar={salvar}
-                professorSelecionado={professorSelecionado}
-            />
+                                <Contato>
+                                    {p.email && <Linha><MdEmail size={16} />{p.email}</Linha>}
+                                    {p.numeroContato && <Linha><MdPhone size={16} />{p.numeroContato}</Linha>}
+                                </Contato>
+
+                                {tags.length > 0 && (
+                                    <Tags>
+                                        {tags.map(t => <Tag key={t}>{t}</Tag>)}
+                                    </Tags>
+                                )}
+                            </Card>
+                        );
+                    })}
+                </Grid>
+            )}
         </PageContainer>
     )
 }

@@ -6,6 +6,10 @@ export const crudEndpoints = (builder, { path, tag }) => ({
         query: (params) => ({ url: path, params }),
         providesTags: [tag],
     }),
+    [`get${tag}`]: builder.query({
+        query: (id) => ({ url: `${path}/${id}` }),
+        providesTags: [tag],
+    }),
     [`create${tag}`]: builder.mutation({
         query: (body) => ({ url: path, method: 'POST', body }),
         invalidatesTags: [tag],

@@ -25,6 +25,16 @@ export const RESPOSAVEL_PARENTESCO = {
     OUTRO: { value: 'outro', label: 'Outro' },
 };
 
+export const RELACAO_CONTATO = {
+    CONJUGE: { value: 'conjugue', label: 'Cônjuge/Esposa(o)' },
+    MAE: { value: 'mae', label: 'Mãe' },
+    PAI: { value: 'pai', label: 'Pai' },
+    IRMAO: { value: 'irmao', label: 'Irmão(ã)' },
+    FILHO: { value: 'filho', label: 'Filho(a)' },
+    AMIGO: { value: 'amigo', label: 'Amigo(a)' },
+    OUTRO: { value: 'outro', label: 'Outro' },
+};
+
 export const DIAS_SEMANA = {
     SEGUNDA: { value: 'segunda', label: 'Segunda' },
     TERCA: { value: 'terca', label: 'Terça' },

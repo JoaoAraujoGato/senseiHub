@@ -13,4 +13,5 @@ export const professorSchema = (isEdicao = false) => z.object({
     numeroContato: z.string().optional(),
     papel: z.enum(PAPEIS).optional().or(z.literal('')),
     genero: z.enum(GENEROS_VALUES).optional().or(z.literal('')),
+    faixa: z.string().optional().or(z.literal('')),
 });
